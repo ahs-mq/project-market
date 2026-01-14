@@ -12,6 +12,6 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource("projects", ProjectController::class);
 
 //register/login routes
-Route::post('/register', [authcontroller::class, 'register']);
-Route::post('/login', [authcontroller::class, 'login']);
+Route::post('/register', [authcontroller::class, 'register'])->middleware('throttle:3,1');
+Route::post('/login', [authcontroller::class, 'login'])->middleware('throttle:3,1');
 Route::post('/logout', [authcontroller::class, 'logout'])->middleware('auth:sanctum');
