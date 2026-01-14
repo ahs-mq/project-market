@@ -37,12 +37,13 @@ class ProjectController extends Controller implements HasMiddleware
             'title' => ['required', 'min:5', 'max:10'],
             'address' => ['required'],
             'description' => ['required'],
-            'tags' => ['nullable']
+            'tags' => ['nullable'],
+
         ]);
 
         $project = $request->user()->projects()->create(Arr::except($newProject, 'tags'));
 
-        if ($newProject['tags']) {
+        if (!empty($newProject['tags'])) {
             foreach (explode(',', $newProject['tags']) as $tag) {
                 $project->tag($tag);
             }
