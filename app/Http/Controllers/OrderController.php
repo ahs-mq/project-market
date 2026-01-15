@@ -12,7 +12,7 @@ class OrderController extends Controller
     public function send_offer(User $user, Project $project)
     {
         // Authorization check
-        Auth::authorize('sameUser', $project);
+        Auth::authorize('isSameUser', $project);
         // Add logic here to handle the acceptance of the order
         $project->update(['status' => 'offer_received']);
         return response()->json(['message' => 'Offer sent successfully'], 200);
@@ -33,5 +33,14 @@ class OrderController extends Controller
         // Add logic here to handle the rejection of the order
         $project->update(['status' => 'rejected']);
         return response()->json(['message' => 'Order rejected successfully'], 200);
+    }
+
+    public function complete(User $user, Project $project)
+    {
+        // Authorization check
+        Auth::authorize('notSameUser', $project);
+        // Add logic here to handle the completion of the order
+        $project->update(['status' => 'complete']);
+        return response()->json(['message' => 'Order completed successfully'], 200);
     }
 }

@@ -29,6 +29,9 @@ Route::post('/login', [authcontroller::class, 'login'])->middleware('throttle:3,
 Route::post('/logout', [authcontroller::class, 'logout'])->middleware('auth:sanctum');
 
 //Order status for projects
-Route::post('/send_offer', [OrderController::class, 'send_offer'])->middleware('auth:sanctum');
-Route::post('/accept', [OrderController::class, 'accept'])->middleware('auth:sanctum');
-Route::post('/reject', [OrderController::class, 'reject'])->middleware('auth:sanctum');
+Route::prefix('order')->middleware('auth:sanctum')->group(function () {
+    Route::post('/send_offer', [OrderController::class, 'send_offer']);
+    Route::post('/accept', [OrderController::class, 'accept']);
+    Route::post('/reject', [OrderController::class, 'reject']);
+    Route::post('/complete', [OrderController::class, 'complete']);
+});
