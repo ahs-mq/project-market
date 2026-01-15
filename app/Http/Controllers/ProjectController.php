@@ -15,7 +15,7 @@ class ProjectController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('auth:sanctum', except: ['index', 'show']),
+            new Middleware('auth:sanctum', except: ['index', 'show', 'search']),
             new Middleware('throttle:10,1', only: ['store', 'update', 'destroy']),
         ];
     }
@@ -24,7 +24,7 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $projects = project::all();
+        $projects = project::with(['user', 'tags'])->get();
 
         return ['projects' => $projects];
     }
@@ -89,5 +89,23 @@ class ProjectController extends Controller implements HasMiddleware
         $project->delete();
 
         return ['message' => 'Project Deleted'];
+    }
+
+    public function search(Request $request)
+    {
+        $searchTerm = $request->query('q');
+
+        $projects = project::with(['user', 'tags'])
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'LIKE', '%' . $searchTerm . '%')
+                    ->orWhere('address', 'LIKE', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'LIKE', '%' . $searchTerm . '%');
+            })
+            ->orWhereHas('tags', function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', '%' . $searchTerm . '%');
+            })
+            ->get();
+
+        return response()->json(['projects' => $projects], 200);
     }
 }
