@@ -95,6 +95,10 @@ class ProjectController extends Controller implements HasMiddleware
     {
         $searchTerm = $request->query('q');
 
+        if (!$searchTerm) {
+            return response()->json(['projects' => []], 200);
+        }
+
         $projects = project::with(['user', 'tags'])
             ->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', '%' . $searchTerm . '%')
