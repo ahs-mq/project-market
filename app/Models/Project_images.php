@@ -9,4 +9,9 @@ class project_images extends Model
 {
     /** @use HasFactory<\Database\Factories\ProjectImagesFactory> */
     use HasFactory;
+
+    public function project()
+    {
+        return $this->belongsTo(project::class);
+    }
 }

@@ -14,15 +14,8 @@ Route::get('/user', function (Request $request) {
 
 //Project routes
 Route::apiResource("projects", ProjectController::class);
-
-//Dashboard routes
-Route::prefix('dashboard')->middleware('auth:sanctum')->group(function () {
-    Route::get('/all', [DashboardController::class, 'index']);
-    Route::get('/pending', [DashboardController::class, 'pending']);
-    Route::get('/complete', [DashboardController::class, 'complete']);
-    Route::get('/canceled', [DashboardController::class, 'canceled']);
-});
-
+Route::get('/projects/filter', [ProjectController::class, 'filter']);
+Route::get('/projects/search', [ProjectController::class, 'search']);
 //register/login routes
 Route::post('/register', [authcontroller::class, 'register'])->middleware('throttle:3,1');
 Route::post('/login', [authcontroller::class, 'login'])->middleware('throttle:3,1');

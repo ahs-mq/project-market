@@ -16,7 +16,7 @@ class ProjectController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('auth:sanctum', except: ['index', 'show', 'search']),
+            new Middleware('auth:sanctum', except: ['index', 'show', 'search', 'filter']),
             new Middleware('throttle:10,1', only: ['store', 'update', 'destroy']),
         ];
     }
@@ -120,6 +120,21 @@ class ProjectController extends Controller implements HasMiddleware
                 $q->where('name', 'LIKE', '%' . $searchTerm . '%');
             })
             ->get();
+
+        return response()->json(['projects' => $projects], 200);
+    }
+
+    public function filter(Request $request)
+    {
+        $status = $request->query('status');
+
+        $query = $request->user()->projects()->with(['tags', 'user:id,name']);
+
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $projects = $query->get();
 
         return response()->json(['projects' => $projects], 200);
     }
