@@ -9,6 +9,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Arr;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rules\File;
 
 class ProjectController extends Controller implements HasMiddleware
 {
@@ -24,7 +25,9 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $projects = project::with(['user', 'tags'])->get();
+        $projects = Project::with(['user:id,name', 'tags'])
+            ->whereIn('status', ['pending', 'offer_received'])
+            ->get();
 
         return ['projects' => $projects];
     }
@@ -38,15 +41,23 @@ class ProjectController extends Controller implements HasMiddleware
             'title' => ['required', 'min:5', 'max:10'],
             'address' => ['required'],
             'description' => ['required'],
+            'images' => ['nullable', 'array',  File::types(['png', 'jpg', 'webp'])],
             'tags' => ['nullable'],
 
         ]);
 
-        $project = $request->user()->projects()->create(Arr::except($newProject, 'tags'));
+        $project = $request->user()->projects()->create(Arr::except($newProject, 'tags', 'images'));
 
         if (!empty($newProject['tags'])) {
             foreach (explode(',', $newProject['tags']) as $tag) {
                 $project->tag($tag);
+            }
+        }
+
+        if (!empty($newProject['images'])) {
+            foreach ($newProject['images'] as $image) {
+                $path = $image->store('projects', 'public');
+                $project->images()->create(['url' => $path]);
             }
         }
 

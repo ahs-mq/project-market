@@ -24,6 +24,11 @@ class project extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tags::class);
+        return $this->belongsToMany(Tags::class, 'project_tag');
+    }
+
+    public function images()
+    {
+        return $this->hasMany(project_images::class);
     }
 }
