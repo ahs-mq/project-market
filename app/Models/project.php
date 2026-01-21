@@ -15,9 +15,9 @@ class project extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function tag(string $name)
+    public function tag(string $type)
     {
-        $tag = Tags::firstorCreate(['name' => $name]);
+        $tag = Tags::firstorCreate(['type' => $type]);
 
         $this->tags()->attach($tag);
     }
