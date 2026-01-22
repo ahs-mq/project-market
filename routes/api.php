@@ -13,9 +13,10 @@ Route::get('/user', function (Request $request) {
 
 
 //Project routes
-Route::apiResource("projects", ProjectController::class);
+// specific project routes must come before the resource route
 Route::get('/projects/filter', [ProjectController::class, 'filter']);
 Route::get('/projects/search', [ProjectController::class, 'search']);
+Route::apiResource("projects", ProjectController::class);
 //register/login routes
 Route::post('/register', [authcontroller::class, 'register'])->middleware('throttle:3,1');
 Route::post('/login', [authcontroller::class, 'login'])->middleware('throttle:3,1');
