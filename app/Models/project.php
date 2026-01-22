@@ -10,6 +10,8 @@ class project extends Model
     /** @use HasFactory<\Database\Factories\ProjectFactory> */
     use HasFactory;
 
+    protected $fillable = ['title', 'address', 'description', 'status'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -21,6 +23,13 @@ class project extends Model
 
         $this->tags()->attach($tag);
     }
+
+    // public function photos(string $url)
+    // {
+    //     $photo = project_images::create(['url' => $url]);
+
+    //     $this->images()->attach($photo);
+    // }
 
     public function tags()
     {

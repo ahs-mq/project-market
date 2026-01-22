@@ -37,30 +37,33 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
-        $newProject = $request->validate([
+        $validated = $request->validate([
             'title' => ['required', 'min:5', 'max:10'],
             'address' => ['required'],
             'description' => ['required'],
-            'images' => ['nullable', 'array',  File::types(['png', 'jpg', 'webp'])],
+            'images' => ['nullable', 'array'],
+            'images.*' => [File::types(['png', 'jpg', 'webp', 'jpeg', 'gif'])->max(5120)],
             'tags' => ['nullable'],
-
         ]);
 
-        $project = $request->user()->projects()->create(Arr::except($newProject, 'tags', 'images'));
+        $project = $request->user()->projects()->create([
+            'title' => $validated['title'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+        ]);
 
-        if (!empty($newProject['tags'])) {
-            foreach (explode(',', $newProject['tags']) as $tag) {
+        if (!empty($validated['tags'])) {
+            foreach (explode(',', $validated['tags']) as $tag) {
                 $project->tag($tag);
             }
         }
 
-        if (!empty($newProject['images'])) {
-            foreach ($newProject['images'] as $image) {
-                $path = $image->store('projects', 'public');
+        if (!empty($validated['images'])) {
+            foreach ($validated['images'] as $image) {
+                $path = $image->store('photos', 'public');
                 $project->images()->create(['url' => $path]);
             }
         }
-
 
         return ['project' => $project];
     }
@@ -79,14 +82,35 @@ class ProjectController extends Controller implements HasMiddleware
     public function update(Request $request, project $project)
     {
         Gate::authorize('modify', $project);
-        $req = $request->validate([
+        $validated = $request->validate([
             'title' => ['required', 'min:5', 'max:10'],
             'address' => ['required'],
             'description' => ['required'],
-            'tags' => ['nullable']
+            'tags' => ['nullable'],
+            'images' => ['nullable', 'array'],
+            'images.*' => [File::types(['png', 'jpg', 'webp', 'jpeg', 'gif'])->max(5120)],
         ]);
 
-        $project->update($req);
+        $project->update([
+            'title' => $validated['title'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+        ]);
+
+        if (!empty($validated['tags'])) {
+            // Handle tags update, perhaps detach and attach new ones
+            $project->tags()->detach();
+            foreach (explode(',', $validated['tags']) as $tag) {
+                $project->tag($tag);
+            }
+        }
+
+        if (!empty($validated['images'])) {
+            foreach ($validated['images'] as $image) {
+                $path = $image->store('photos', 'public');
+                $project->images()->create(['url' => $path]);
+            }
+        }
 
         return ['project' => $project];
     }

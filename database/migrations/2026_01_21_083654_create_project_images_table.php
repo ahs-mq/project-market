@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Project::class)->constrained()->onDelete('cascade');
             $table->string('url');
+            $table->timestamps();
         });
     }
 
