@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\project;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -25,8 +25,10 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $projects = Project::with(['user:id,name', 'tags'])
+        $projects = Project::with(['images', 'user:id,name', 'tags'])
             ->whereIn('status', ['pending', 'offer_received'])
+            ->latest()
+            ->limit(10)
             ->get();
 
         return ['projects' => $projects];
@@ -71,7 +73,7 @@ class ProjectController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(project $project)
+    public function show(Project $project)
     {
         return ['project' => $project];
     }
@@ -79,16 +81,16 @@ class ProjectController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, project $project)
+    public function update(Request $request, Project $project)
     {
         Gate::authorize('modify', $project);
         $validated = $request->validate([
             'title' => ['required', 'min:5', 'max:10'],
             'address' => ['required'],
             'description' => ['required'],
-            'tags' => ['nullable'],
             'images' => ['nullable', 'array'],
             'images.*' => [File::types(['png', 'jpg', 'webp', 'jpeg', 'gif'])->max(5120)],
+            'tags' => ['nullable'],
         ]);
 
         $project->update([
@@ -98,8 +100,6 @@ class ProjectController extends Controller implements HasMiddleware
         ]);
 
         if (!empty($validated['tags'])) {
-            // Handle tags update, perhaps detach and attach new ones
-            $project->tags()->detach();
             foreach (explode(',', $validated['tags']) as $tag) {
                 $project->tag($tag);
             }
@@ -118,7 +118,7 @@ class ProjectController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(project $project)
+    public function destroy(Project $project)
     {
         Gate::authorize('modify', $project);
         $project->delete();
@@ -134,7 +134,7 @@ class ProjectController extends Controller implements HasMiddleware
             return response()->json(['projects' => []], 200);
         }
 
-        $projects = project::with(['user', 'tags'])
+        $projects = Project::with(['user', 'tags'])
             ->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', '%' . $searchTerm . '%')
                     ->orWhere('address', 'LIKE', '%' . $searchTerm . '%')
