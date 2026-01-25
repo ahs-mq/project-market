@@ -162,4 +162,52 @@ class ProjectController extends Controller implements HasMiddleware
 
         return response()->json(['projects' => $projects], 200);
     }
+
+    public function send_offer(User $user, Project $project)
+    {
+        // Authorization check
+        Gate::authorize('notSameUser', $project);
+        // Add logic here to handle the acceptance of the order
+        $project->update(['status' => 'offer_received']);
+        return response()->json(['message' => 'Offer sent successfully'], 200);
+    }
+    public function accept(Project $project)
+    {
+
+        // Authorization check
+        Gate::authorize('modify', $project);
+        // Add logic here to handle the acceptance of the order
+        $project->update(['status' => 'accepted']);
+        return response()->json(['message' => 'Order accepted successfully'], 200);
+    }
+
+    public function reject(Project $project)
+    {
+        // Authorization check
+        Gate::authorize('modify', $project);
+        // Add logic here to handle the rejection of the order
+        if ($project->status !== 'offer_received') {
+            return response()->json(['message' => 'Only projects with offer_received status can be rejected'], 422);
+        }
+        $project->update(['status' => 'rejected']);
+        return response()->json(['message' => 'Order rejected successfully'], 200);
+    }
+
+    public function complete(Project $project)
+    {
+        // Authorization check
+        Gate::authorize('modify', $project);
+        // Add logic here to handle the completion of the order
+        $project->update(['status' => 'complete']);
+        return response()->json(['message' => 'Order completed successfully'], 200);
+    }
+
+    public function cancel(Project $project)
+    {
+        // Authorization check
+        Gate::authorize('modify', $project);
+        // Add logic here to handle the cancellation of the order
+        $project->update(['status' => 'canceled']);
+        return response()->json(['message' => 'Order canceled successfully'], 200);
+    }
 }
