@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\StatusUpdated;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -169,6 +170,7 @@ class ProjectController extends Controller implements HasMiddleware
         Gate::authorize('notSameUser', $project);
         // Add logic here to handle the acceptance of the order
         $project->update(['status' => 'offer_received']);
+        StatusUpdated::dispatch($project);
         return response()->json(['message' => 'Offer sent successfully'], 200);
     }
     public function accept(Project $project)
@@ -178,6 +180,7 @@ class ProjectController extends Controller implements HasMiddleware
         Gate::authorize('modify', $project);
         // Add logic here to handle the acceptance of the order
         $project->update(['status' => 'accepted']);
+        StatusUpdated::dispatch($project);
         return response()->json(['message' => 'Order accepted successfully'], 200);
     }
 
@@ -190,6 +193,7 @@ class ProjectController extends Controller implements HasMiddleware
             return response()->json(['message' => 'Only projects with offer_received status can be rejected'], 422);
         }
         $project->update(['status' => 'rejected']);
+        StatusUpdated::dispatch($project);
         return response()->json(['message' => 'Order rejected successfully'], 200);
     }
 
@@ -199,6 +203,7 @@ class ProjectController extends Controller implements HasMiddleware
         Gate::authorize('modify', $project);
         // Add logic here to handle the completion of the order
         $project->update(['status' => 'complete']);
+        StatusUpdated::dispatch($project);
         return response()->json(['message' => 'Order completed successfully'], 200);
     }
 
@@ -208,6 +213,7 @@ class ProjectController extends Controller implements HasMiddleware
         Gate::authorize('modify', $project);
         // Add logic here to handle the cancellation of the order
         $project->update(['status' => 'canceled']);
+        StatusUpdated::dispatch($project);
         return response()->json(['message' => 'Order canceled successfully'], 200);
     }
 }
